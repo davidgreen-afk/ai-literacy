@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Literacy: Quick Start</title>
+<style>
+  :root{
+    --navy:#0D2137; --navy2:#16324a; --teal:#0B7A75; --teal2:#14A5A0;
+    --gold:#F4A825; --slate:#334155; --light:#F4F7F8; --white:#ffffff;
+    --ok:#1c8a52; --bad:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:Calibri,Arial,sans-serif;background:var(--light);color:var(--slate);}
+  h1,h2,h3{font-family:Georgia,'Times New Roman',serif;color:var(--navy);margin-top:0;}
+  #app{max-width:760px;margin:0 auto;min-height:100vh;background:var(--white);box-shadow:0 0 24px rgba(0,0,0,0.08);display:flex;flex-direction:column;}
+
+  header{background:var(--navy);color:var(--white);padding:18px 24px;}
+  header .eyebrow{color:var(--gold);font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:bold;}
+  header h1{color:var(--white);font-size:22px;margin:4px 0 10px 0;}
+  .progress-track{background:rgba(255,255,255,0.15);border-radius:6px;height:8px;overflow:hidden;}
+  .progress-fill{background:var(--gold);height:100%;width:0%;transition:width .4s ease;}
+  .stage-label{font-size:12px;color:#cfe0e8;margin-top:6px;}
+
+  main{flex:1;padding:28px 26px 10px 26px;}
+  .screen{display:none;animation:fade .3s ease;}
+  .screen.active{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  .card{background:var(--light);border-left:5px solid var(--teal);border-radius:8px;padding:16px 18px;margin:14px 0;}
+  .card.gold{border-left-color:var(--gold);}
+  .badge{display:inline-block;background:var(--gold);color:var(--navy);font-weight:bold;font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:10px;}
+
+  .tabbar{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0;}
+  .tabbtn{flex:1;min-width:120px;background:var(--white);border:2px solid #dfe7ea;border-radius:8px;padding:10px 12px;cursor:pointer;font-weight:bold;color:var(--navy);font-size:13px;text-align:center;}
+  .tabbtn.active{border-color:var(--teal);background:#e9f6f5;color:var(--teal);}
+  .tabpanel{display:none;background:var(--light);border-radius:8px;padding:16px 18px;border:1px solid #e2e8ec;}
+  .tabpanel.active{display:block;}
+
+  .poll-opt{display:block;width:100%;text-align:left;background:var(--white);border:2px solid #dfe7ea;border-radius:8px;padding:12px 14px;margin:8px 0;cursor:pointer;font-size:14px;color:var(--slate);}
+  .poll-opt:hover{border-color:var(--teal2);}
+  .poll-opt.selected{border-color:var(--teal);background:#e9f6f5;color:var(--navy);font-weight:bold;}
+
+  .quiz-q{margin-bottom:22px;}
+  .quiz-q .qtext{font-weight:bold;color:var(--navy);margin-bottom:8px;}
+  .opt{display:block;width:100%;text-align:left;background:var(--white);border:2px solid #dfe7ea;border-radius:8px;padding:10px 14px;margin:6px 0;cursor:pointer;font-size:14px;}
+  .opt.correct{border-color:var(--ok);background:#eafaf0;}
+  .opt.incorrect{border-color:var(--bad);background:#fdecea;}
+  .feedback{font-size:13px;margin-top:6px;padding:8px 10px;border-radius:6px;}
+  .feedback.ok{background:#eafaf0;color:var(--ok);}
+  .feedback.bad{background:#fdecea;color:var(--bad);}
+
+  textarea{width:100%;min-height:80px;border:2px solid #dfe7ea;border-radius:8px;padding:10px;font-family:Calibri,Arial,sans-serif;font-size:14px;resize:vertical;}
+  .rating{display:flex;gap:8px;margin:10px 0;}
+  .rate-btn{flex:1;padding:10px;border:2px solid #dfe7ea;border-radius:8px;background:var(--white);cursor:pointer;font-weight:bold;color:var(--navy);}
+  .rate-btn.selected{background:var(--gold);border-color:var(--gold);color:var(--navy);}
+
+  footer{padding:16px 26px 22px 26px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #eee;}
+  button.nav{background:var(--teal);color:white;border:none;padding:11px 22px;border-radius:6px;font-weight:bold;font-size:14px;cursor:pointer;}
+  button.nav:hover{background:var(--teal2);}
+  button.nav.secondary{background:transparent;color:var(--slate);border:2px solid #dfe7ec;}
+  button.nav:disabled{opacity:.4;cursor:not-allowed;}
+  .hint{font-size:12px;color:#7a8a96;}
+
+  .summary-box{background:var(--navy);color:white;border-radius:8px;padding:18px;margin-top:12px;}
+  .summary-box .score{font-size:34px;font-weight:bold;color:var(--gold);font-family:Georgia,serif;}
+  .complete-banner{display:none;background:#eafaf0;border:2px solid var(--ok);color:var(--ok);border-radius:8px;padding:12px 16px;font-weight:bold;text-align:center;margin-top:14px;}
+
+  ul{padding-left:20px;}
+  li{margin:6px 0;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="eyebrow">AI Literacy</div>
+    <h1 id="stageTitle">Quick Start</h1>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="stage-label" id="stageLabel">Step 1 of 5 · Relevance</div>
+  </header>
+
+  <main>
+
+    <!-- SCREEN 1: RELEVANCE -->
+    <section class="screen active" data-screen="0">
+      <h2>Why this 10 minutes matters</h2>
+      <p>You're going to use AI tools in this course, in other classes, and in whatever comes after graduation, whether that's grad school, a lab, or a job. The question isn't <em>if</em> you'll use AI. It's whether you'll use it well.</p>
+      <div class="card">
+        <strong>Used carelessly</strong>, AI can hand you confident-sounding nonsense, quietly replace your own thinking, or get you in academic integrity trouble you didn't see coming.
+      </div>
+      <div class="card gold">
+        <strong>Used well</strong>, it can help you study faster, test your understanding, and get unstuck on tough problems, without doing the thinking for you.
+      </div>
+      <p>This module is short on purpose. Five quick stops: why it matters, what you already know, three core skills, a chance to practice, and a two-minute reflection.</p>
+    </section>
+
+    <!-- SCREEN 2: ACTIVATE -->
+    <section class="screen" data-screen="1">
+      <h2>Quick check-in</h2>
+      <p>No wrong answers here, this just tunes what follows. Pick the option that fits you best.</p>
+      <div class="card">
+        <strong>How often do you currently use AI tools (ChatGPT, Claude, Copilot, etc.) for schoolwork?</strong>
+        <div id="pollA"></div>
+      </div>
+      <div class="card">
+        <strong>Have you ever had an AI tool confidently give you wrong information?</strong>
+        <div id="pollB"></div>
+      </div>
+      <p class="hint">Hang onto your honest answer to that second question, it's the whole reason skill #2 exists.</p>
+    </section>
+
+    <!-- SCREEN 3: DEMONSTRATE -->
+    <section class="screen" data-screen="2">
+      <h2>Three skills, ninety seconds each</h2>
+      <div class="tabbar">
+        <button class="tabbtn active" data-tab="0">1. Verify</button>
+        <button class="tabbtn" data-tab="1">2. Prompt Well</button>
+        <button class="tabbtn" data-tab="2">3. Disclose</button>
+      </div>
+
+      <div class="tabpanel active" data-panel="0">
+        <span class="badge">Skill 1</span>
+        <h3>AI is confident even when it's wrong</h3>
+        <p>Language models predict plausible-sounding text. They don't check facts against a database, they generate what statistically <em>sounds right</em>. That means they can invent citations, misstate dates, or fabricate quotes, all delivered in the same confident tone as correct information.</p>
+        <ul>
+          <li>Treat AI output as a <strong>first draft</strong>, not a final answer.</li>
+          <li>Verify anything you'll actually rely on: dates, statistics, citations, formulas.</li>
+          <li>If it sounds oddly specific and you can't find it anywhere else, be suspicious.</li>
+        </ul>
+      </div>
+
+      <div class="tabpanel" data-panel="1">
+        <span class="badge">Skill 2</span>
+        <h3>Vague prompts get vague answers</h3>
+        <p>"Help me with my essay" gets you generic filler. Good prompts give the model context, a clear task, and constraints.</p>
+        <div class="card">
+          <strong>Weak:</strong> "Explain photosynthesis"<br>
+          <strong>Better:</strong> "Explain photosynthesis to a first-year biology student in 3 sentences, then give me two quiz questions to test myself."
+        </div>
+        <p>Context + task + format = an answer you can actually use.</p>
+      </div>
+
+      <div class="tabpanel" data-panel="2">
+        <span class="badge">Skill 3</span>
+        <h3>Disclosure isn't optional, it's expected</h3>
+        <p>Every instructor has a different policy on AI use, from "not allowed" to "use it and cite it" to "use it freely." None of that matters if you don't check first.</p>
+        <ul>
+          <li>Read the syllabus AI policy for <strong>each</strong> course, don't assume it's the same everywhere.</li>
+          <li>When in doubt, ask your instructor directly. It's a normal question, not a suspicious one.</li>
+          <li>If you use AI and it's allowed, say so. A one-line note ("Used Claude to brainstorm an outline") takes ten seconds and protects you.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- SCREEN 4: APPLY -->
+    <section class="screen" data-screen="3">
+      <h2>Try it: spot the issue</h2>
+      <p>Three quick scenarios. Pick the best response.</p>
+
+      <div class="quiz-q" data-q="0">
+        <div class="qtext">Q1. An AI tool gives you a statistic with a specific source and page number for a paper you need for an assignment. What's your best next move?</div>
+        <button class="opt" data-correct="false">Use it as-is, it gave a specific source so it must be accurate.</button>
+        <button class="opt" data-correct="true">Look up the actual source to confirm the statistic and citation are real.</button>
+        <button class="opt" data-correct="false">Ask the AI a second time to see if it gives the same answer.</button>
+        <div class="feedback" style="display:none;"></div>
+      </div>
+
+      <div class="quiz-q" data-q="1">
+        <div class="qtext">Q2. You want AI help understanding a tough concept before an exam. Which prompt will get you the most useful response?</div>
+        <button class="opt" data-correct="false">"explain this"</button>
+        <button class="opt" data-correct="true">"Explain [concept] the way you'd explain it to someone who's struggled with it before, then quiz me with 2 questions."</button>
+        <button class="opt" data-correct="false">"is this on the test"</button>
+        <div class="feedback" style="display:none;"></div>
+      </div>
+
+      <div class="quiz-q" data-q="2">
+        <div class="qtext">Q3. Your syllabus doesn't mention an AI policy at all. What should you do before using AI on a graded assignment?</div>
+        <button class="opt" data-correct="false">Assume it's fine since nothing says otherwise.</button>
+        <button class="opt" data-correct="false">Avoid the assignment entirely.</button>
+        <button class="opt" data-correct="true">Ask the instructor directly what's allowed.</button>
+        <div class="feedback" style="display:none;"></div>
+      </div>
+    </section>
+
+    <!-- SCREEN 5: REFLECT -->
+    <section class="screen" data-screen="4">
+      <h2>Wrap-up</h2>
+      <div class="summary-box">
+        <div>Your practice score</div>
+        <div class="score" id="scoreDisplay">0 / 3</div>
+      </div>
+
+      <div class="card" style="margin-top:18px;">
+        <strong>How confident do you feel using AI tools responsibly in your coursework?</strong>
+        <div class="rating" id="confidenceRating">
+          <button class="rate-btn" data-val="1">1</button>
+          <button class="rate-btn" data-val="2">2</button>
+          <button class="rate-btn" data-val="3">3</button>
+          <button class="rate-btn" data-val="4">4</button>
+          <button class="rate-btn" data-val="5">5</button>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:#7a8a96;"><span>Not confident</span><span>Very confident</span></div>
+      </div>
+
+      <div class="card gold">
+        <strong>One thing you'll actually do differently:</strong>
+        <textarea id="reflectionText" placeholder="e.g., I'll check my professor's AI policy before using it on the next assignment..."></textarea>
+      </div>
+
+      <button class="nav" id="finishBtn" style="width:100%;margin-top:10px;">Mark Complete</button>
+      <div class="complete-banner" id="completeBanner">✓ Nice work, this module is marked complete.</div>
+    </section>
+
+  </main>
+
+  <footer>
+    <button class="nav secondary" id="backBtn">Back</button>
+    <span class="hint" id="footerHint"></span>
+    <button class="nav" id="nextBtn">Next</button>
+  </footer>
+
+</div>
+
+<script>
+/* ---------------- SCORM 1.2 API wrapper ---------------- */
+var API = null;
+function findAPI(win){
+  var attempts = 0;
+  while (win.API == null && win.parent != null && win.parent != win && attempts < 10){
+    attempts++;
+    win = win.parent;
+  }
+  return win.API || null;
+}
+function getAPI(){
+  if (API) return API;
+  API = findAPI(window);
+  if (!API && window.opener) API = findAPI(window.opener);
+  return API;
+}
+function scormInit(){
+  var api = getAPI();
+  if (api){ try{ api.LMSInitialize(""); }catch(e){} }
+  return api;
+}
+function scormSetValue(el, val){
+  var api = getAPI();
+  if (api){ try{ api.LMSSetValue(el, val); api.LMSCommit(""); }catch(e){} }
+}
+function scormFinish(){
+  var api = getAPI();
+  if (api){ try{ api.LMSCommit(""); api.LMSFinish(""); }catch(e){} }
+}
+window.addEventListener("load", function(){ scormInit(); });
+window.addEventListener("beforeunload", function(){ scormFinish(); });
+
+/* ---------------- App state & navigation ---------------- */
+var screens = document.querySelectorAll(".screen");
+var total = screens.length;
+var current = 0;
+var stageNames = ["Relevance","Activate","Demonstrate","Apply","Reflect"];
+var quizScore = 0;
+var quizAnswered = [false,false,false];
+var confidenceVal = null;
+
+function renderScreen(){
+  screens.forEach(function(s,i){ s.classList.toggle("active", i===current); });
+  document.getElementById("stageTitle").textContent = stageNames[current];
+  document.getElementById("stageLabel").textContent = "Step "+(current+1)+" of "+total+" \u00B7 "+stageNames[current];
+  document.getElementById("progressFill").style.width = (((current+1)/total)*100)+"%";
+  document.getElementById("backBtn").disabled = (current===0);
+  document.getElementById("nextBtn").style.display = (current===total-1) ? "none" : "inline-block";
+  document.getElementById("footerHint").textContent = (current===total-1) ? "Finish the reflection below to complete the module." : "";
+  scormSetValue("cmi.core.lesson_location", String(current));
+}
+
+document.getElementById("nextBtn").addEventListener("click", function(){
+  if (current < total-1){ current++; renderScreen(); window.scrollTo(0,0); }
+});
+document.getElementById("backBtn").addEventListener("click", function(){
+  if (current > 0){ current--; renderScreen(); window.scrollTo(0,0); }
+});
+
+/* ---------------- Poll (activate screen, ungraded) ---------------- */
+function buildPoll(containerId, options){
+  var c = document.getElementById(containerId);
+  options.forEach(function(opt){
+    var b = document.createElement("button");
+    b.className = "poll-opt";
+    b.textContent = opt;
+    b.addEventListener("click", function(){
+      Array.prototype.forEach.call(c.children, function(ch){ ch.classList.remove("selected"); });
+      b.classList.add("selected");
+    });
+    c.appendChild(b);
+  });
+}
+buildPoll("pollA", ["Never / rarely","A few times a semester","Weekly","Almost every assignment"]);
+buildPoll("pollB", ["Yes, definitely","I think so, not sure","No, not that I noticed"]);
+
+/* ---------------- Tabs (demonstrate screen) ---------------- */
+document.querySelectorAll(".tabbtn").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    var idx = btn.getAttribute("data-tab");
+    document.querySelectorAll(".tabbtn").forEach(function(b){ b.classList.remove("active"); });
+    document.querySelectorAll(".tabpanel").forEach(function(p){ p.classList.remove("active"); });
+    btn.classList.add("active");
+    document.querySelector('.tabpanel[data-panel="'+idx+'"]').classList.add("active");
+  });
+});
+
+/* ---------------- Quiz (apply screen) ---------------- */
+document.querySelectorAll(".quiz-q").forEach(function(qEl, qi){
+  var opts = qEl.querySelectorAll(".opt");
+  var fb = qEl.querySelector(".feedback");
+  opts.forEach(function(opt){
+    opt.addEventListener("click", function(){
+      if (quizAnswered[qi]) return;
+      quizAnswered[qi] = true;
+      var isCorrect = opt.getAttribute("data-correct") === "true";
+      opts.forEach(function(o){
+        o.disabled = true;
+        if (o.getAttribute("data-correct") === "true") o.classList.add("correct");
+      });
+      if (!isCorrect) opt.classList.add("incorrect");
+      fb.style.display = "block";
+      fb.className = "feedback " + (isCorrect ? "ok" : "bad");
+      if (isCorrect){
+        quizScore++;
+        fb.textContent = "Correct. " + [
+          "Specific-sounding details don't guarantee accuracy, always verify sources you plan to cite.",
+          "Context, a clear task, and a format request turn AI into an actual study partner.",
+          "Instructors would rather answer the question upfront than sort out a misunderstanding later."
+        ][qi];
+      } else {
+        fb.textContent = "Not quite. " + [
+          "Specific-sounding details don't guarantee accuracy, always verify sources you plan to cite.",
+          "Context, a clear task, and a format request turn AI into an actual study partner.",
+          "Instructors would rather answer the question upfront than sort out a misunderstanding later."
+        ][qi];
+      }
+      updateScoreDisplay();
+      scormSetValue("cmi.core.score.raw", String(Math.round((quizScore/3)*100)));
+    });
+  });
+});
+function updateScoreDisplay(){
+  document.getElementById("scoreDisplay").textContent = quizScore + " / 3";
+}
+
+/* ---------------- Confidence rating ---------------- */
+document.querySelectorAll(".rate-btn").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    document.querySelectorAll(".rate-btn").forEach(function(b){ b.classList.remove("selected"); });
+    btn.classList.add("selected");
+    confidenceVal = btn.getAttribute("data-val");
+  });
+});
+
+/* ---------------- Finish / completion ---------------- */
+document.getElementById("finishBtn").addEventListener("click", function(){
+  var reflection = document.getElementById("reflectionText").value;
+  scormSetValue("cmi.core.score.raw", String(Math.round((quizScore/3)*100)));
+  scormSetValue("cmi.core.lesson_status", "completed");
+  scormSetValue("cmi.suspend_data", JSON.stringify({
+    quizScore: quizScore,
+    confidence: confidenceVal,
+    reflection: reflection
+  }).slice(0,4000));
+  document.getElementById("completeBanner").style.display = "block";
+  document.getElementById("finishBtn").disabled = true;
+  document.getElementById("finishBtn").textContent = "Completed";
+  scormFinish();
+});
+
+renderScreen();
+</script>
+</body>
+</html>
