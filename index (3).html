@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Literacy for Learning</title>
+<style>
+  :root{
+    --navy:#0D2137; --navy2:#16324a; --teal:#0B7A75; --teal2:#14A5A0;
+    --gold:#F4A825; --slate:#334155; --light:#F4F7F8; --white:#ffffff;
+    --ok:#1c8a52; --bad:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:Calibri,Arial,sans-serif;background:var(--light);color:var(--slate);}
+  h1,h2,h3{font-family:Georgia,'Times New Roman',serif;color:var(--navy);margin-top:0;}
+  #app{max-width:780px;margin:0 auto;min-height:100vh;background:var(--white);box-shadow:0 0 24px rgba(0,0,0,0.08);display:flex;flex-direction:column;}
+
+  header{background:var(--navy);color:var(--white);padding:18px 24px;}
+  header .eyebrow{color:var(--gold);font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:bold;}
+  header h1{color:var(--white);font-size:22px;margin:4px 0 10px 0;}
+  .progress-track{background:rgba(255,255,255,0.15);border-radius:6px;height:8px;overflow:hidden;}
+  .progress-fill{background:var(--gold);height:100%;width:0%;transition:width .4s ease;}
+  .stage-label{font-size:12px;color:#cfe0e8;margin-top:6px;}
+  .backlink{background:none;border:none;color:#cfe0e8;font-weight:bold;font-size:12px;cursor:pointer;padding:0;margin-bottom:6px;text-decoration:underline;}
+
+  main{flex:1;padding:28px 26px 10px 26px;}
+  .screen{animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  .card{background:var(--light);border-left:5px solid var(--teal);border-radius:8px;padding:16px 18px;margin:14px 0;}
+  .card.gold{border-left-color:var(--gold);}
+  .badge{display:inline-block;background:var(--gold);color:var(--navy);font-weight:bold;font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:10px;}
+
+  .tabbar{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0;}
+  .tabbtn{flex:1;min-width:110px;background:var(--white);border:2px solid #dfe7ea;border-radius:8px;padding:10px 10px;cursor:pointer;font-weight:bold;color:var(--navy);font-size:12.5px;text-align:center;}
+  .tabbtn.active{border-color:var(--teal);background:#e9f6f5;color:var(--teal);}
+  .tabpanel{background:var(--light);border-radius:8px;padding:16px 18px;border:1px solid #e2e8ec;}
+
+  .poll-opt{display:block;width:100%;text-align:left;background:var(--white);border:2px solid #dfe7ea;border-radius:8px;padding:12px 14px;margin:8px 0;cursor:pointer;font-size:14px;color:var(--slate);}
+  .poll-opt:hover{border-color:var(--teal2);}
+  .poll-opt.selected{border-color:var(--teal);background:#e9f6f5;color:var(--navy);font-weight:bold;}
+
+  .quiz-q{margin-bottom:22px;}
+  .quiz-q .qtext{font-weight:bold;color:var(--navy);margin-bottom:8px;}
+  .opt{display:block;width:100%;text-align:left;background:var(--white);border:2px solid #dfe7ea;border-radius:8px;padding:10px 14px;margin:6px 0;cursor:pointer;font-size:14px;}
+  .opt.correct{border-color:var(--ok);background:#eafaf0;}
+  .opt.incorrect{border-color:var(--bad);background:#fdecea;}
+  .feedback{font-size:13px;margin-top:6px;padding:8px 10px;border-radius:6px;}
+  .feedback.ok{background:#eafaf0;color:var(--ok);}
+  .feedback.bad{background:#fdecea;color:var(--bad);}
+
+  textarea{width:100%;min-height:80px;border:2px solid #dfe7ea;border-radius:8px;padding:10px;font-family:Calibri,Arial,sans-serif;font-size:14px;resize:vertical;}
+  .select{width:100%;padding:10px 12px;border:2px solid #dfe7ea;border-radius:8px;font-family:Calibri,Arial,sans-serif;font-size:14px;color:var(--slate);background:white;margin:8px 0;}
+  .rating{display:flex;gap:8px;margin:10px 0;}
+  .rate-btn{flex:1;padding:10px;border:2px solid #dfe7ea;border-radius:8px;background:var(--white);cursor:pointer;font-weight:bold;color:var(--navy);}
+  .rate-btn.selected{background:var(--gold);border-color:var(--gold);color:var(--navy);}
+
+  footer{padding:16px 26px 22px 26px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #eee;}
+  button.nav{background:var(--teal);color:white;border:none;padding:11px 22px;border-radius:6px;font-weight:bold;font-size:14px;cursor:pointer;}
+  button.nav:hover{background:var(--teal2);}
+  button.nav.secondary{background:transparent;color:var(--slate);border:2px solid #dfe7ec;}
+  button.nav:disabled{opacity:.4;cursor:not-allowed;}
+  .hint{font-size:12px;color:#7a8a96;}
+
+  .summary-box{background:var(--navy);color:white;border-radius:8px;padding:18px;margin-top:12px;}
+  .summary-box .score{font-size:34px;font-weight:bold;color:var(--gold);font-family:Georgia,serif;}
+  .complete-banner{background:#eafaf0;border:2px solid var(--ok);color:var(--ok);border-radius:8px;padding:12px 16px;font-weight:bold;text-align:center;margin-top:14px;}
+
+  ul{padding-left:20px;}
+  li{margin:6px 0;}
+
+  /* Menu screen */
+  .menu-intro{padding:4px 0 4px 0;color:var(--slate);font-size:14px;}
+  .menu-subtitle{font-size:13.5px;color:#cfe0e8;margin:2px 0 10px 0;}
+  .about-box{margin-top:22px;padding-top:16px;border-top:1px solid #eee;font-size:13px;color:var(--slate);}
+  .about-box .about-title{font-family:Georgia,serif;color:var(--navy);font-weight:bold;font-size:14px;margin-bottom:6px;}
+  .about-box p{margin:6px 0;}
+  .about-box a{color:var(--teal);font-weight:bold;text-decoration:none;}
+  .about-box a:hover{text-decoration:underline;}
+  .overall-box{background:var(--navy);color:white;border-radius:8px;padding:14px 18px;margin:14px 0 18px 0;display:flex;justify-content:space-between;align-items:center;}
+  .overall-box .num{font-family:Georgia,serif;font-size:22px;color:var(--gold);font-weight:bold;}
+  .overall-box .lbl{font-size:12px;color:#cfe0e8;}
+  .menu-grid{display:flex;flex-direction:column;gap:14px;}
+  .module-card{border:2px solid #e2e8ec;border-radius:10px;padding:16px 18px;background:var(--white);}
+  .module-card.completed{border-color:var(--ok);background:#f6fbf8;}
+  .module-card-top{display:flex;align-items:center;gap:12px;}
+  .module-num{width:32px;height:32px;border-radius:50%;background:var(--navy);color:white;font-family:Georgia,serif;font-weight:bold;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;}
+  .module-card.completed .module-num{background:var(--ok);}
+  .module-card-title{font-family:Georgia,serif;color:var(--navy);font-size:16px;font-weight:bold;flex:1;}
+  .module-desc{font-size:13px;color:var(--slate);margin:8px 0;}
+  .module-meta{display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
+  .status-pill{font-size:10.5px;font-weight:bold;text-transform:uppercase;letter-spacing:.5px;padding:3px 10px;border-radius:20px;background:#eef2f4;color:#7a8a96;}
+  .status-pill.inprogress{background:#fff4e0;color:#b3790a;}
+  .status-pill.completed{background:#eafaf0;color:var(--ok);}
+  .module-time{font-size:11.5px;color:#7a8a96;}
+  .startbtn{background:var(--teal);color:white;border:none;padding:8px 18px;border-radius:6px;font-weight:bold;font-size:13px;cursor:pointer;}
+  .startbtn:hover{background:var(--teal2);}
+  .startbtn.review{background:transparent;border:2px solid var(--ok);color:var(--ok);}
+
+  /* Job-aid prompt cards */
+  .prompt-card{background:var(--white);border:1px solid #e2e8ec;border-left:4px solid var(--teal2);border-radius:8px;padding:12px 14px;margin:10px 0;}
+  .prompt-card .ptxt{font-style:italic;color:var(--navy);font-size:14px;}
+  .copy-btn{background:none;border:1px solid #dfe7ea;color:var(--teal);font-size:11px;font-weight:bold;padding:3px 10px;border-radius:14px;cursor:pointer;margin-top:8px;}
+  .copy-btn:hover{background:#e9f6f5;}
+  .copy-btn.copied{border-color:var(--ok);color:var(--ok);}
+
+  .checklist{margin:12px 0;}
+  .check-item{display:flex;align-items:flex-start;gap:8px;padding:7px 0;font-size:13.5px;color:var(--slate);cursor:pointer;}
+  .check-item input{margin-top:3px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="headerBar"></header>
+  <main id="mainContent"></main>
+  <footer id="footerBar"></footer>
+</div>
+
+<script>
+/* =========================================================
+   SCORM 1.2 API WRAPPER
+   ========================================================= */
+var API = null;
+function findAPI(win){
+  var attempts = 0;
+  while (win.API == null && win.parent != null && win.parent != win && attempts < 10){
+    attempts++; win = win.parent;
+  }
+  return win.API || null;
+}
+function getAPI(){
+  if (API) return API;
+  API = findAPI(window);
+  if (!API && window.opener) API = findAPI(window.opener);
+  return API;
+}
+function scormInit(){ var api=getAPI(); if(api){ try{ api.LMSInitialize(""); }catch(e){} } return api; }
+function scormSet(el,val){ var api=getAPI(); if(api){ try{ api.LMSSetValue(el,val); api.LMSCommit(""); }catch(e){} } }
+function scormGet(el){ var api=getAPI(); if(api){ try{ return api.LMSGetValue(el); }catch(e){ return ""; } } return ""; }
+function scormFinish(){ var api=getAPI(); if(api){ try{ api.LMSCommit(""); api.LMSFinish(""); }catch(e){} } }
+window.addEventListener("beforeunload", function(){ scormFinish(); });
+
+/* =========================================================
+   MODULE DATA (RADAR: Relevance / Activate / Demonstrate / Apply / Reflect)
+   ========================================================= */
+var MODULES = [
+{
+  id:0, title:"AI Literacy: Quick Start", time:"10-15 min",
+  desc:"The essentials: why this matters, and three habits that keep AI use safe and useful.",
+  stages:[
+    {type:"content", label:"Relevance", html:
+      "<h2>Why this matters</h2><p>You're going to use AI tools in this course, in other classes, and in whatever comes after graduation. The question isn't <em>if</em> you'll use AI, it's whether you'll use it well.</p>"+
+      "<div class='card'><strong>Used carelessly</strong>, AI can hand you confident-sounding nonsense, quietly replace your own thinking, or get you in academic integrity trouble you didn't see coming.</div>"+
+      "<div class='card gold'><strong>Used well</strong>, it can help you study faster, test your understanding, and get unstuck, without doing the thinking for you.</div>"+
+      "<p>This module is short on purpose: why it matters, what you already know, three core skills, a chance to practice, and a quick reflection.</p>"},
+    {type:"poll", label:"Activate", polls:[
+      {id:"a", q:"How often do you currently use AI tools for schoolwork?", options:["Never / rarely","A few times a semester","Weekly","Almost every assignment"]},
+      {id:"b", q:"Have you ever had an AI tool confidently give you wrong information?", options:["Yes, definitely","I think so, not sure","No, not that I noticed"]}
+    ]},
+    {type:"tabs", label:"Demonstrate", tabs:[
+      {label:"1. Verify", html:"<span class='badge'>Skill 1</span><h3>AI is confident even when it's wrong</h3><p>Language models predict plausible-sounding text, they don't check facts against a database. That means they can invent citations, misstate dates, or fabricate quotes, all delivered in the same confident tone as correct information.</p><ul><li>Treat AI output as a <strong>first draft</strong>, not a final answer.</li><li>Verify anything you'll rely on: dates, statistics, citations, formulas.</li><li>If it sounds oddly specific and you can't find it elsewhere, be suspicious.</li></ul>"},
+      {label:"2. Prompt Well", html:"<span class='badge'>Skill 2</span><h3>Vague prompts get vague answers</h3><p>Good prompts give the model context, a clear task, and constraints.</p><div class='card'><strong>Weak:</strong> \"Explain photosynthesis\"<br><strong>Better:</strong> \"Explain photosynthesis to a first-year biology student in 3 sentences, then give me two quiz questions to test myself.\"</div>"},
+      {label:"3. Disclose", html:"<span class='badge'>Skill 3</span><h3>Disclosure isn't optional</h3><p>Every instructor has a different AI policy. None of that matters if you don't check first.</p><ul><li>Read the syllabus AI policy for <strong>each</strong> course.</li><li>When in doubt, ask your instructor directly.</li><li>If you use AI and it's allowed, say so, a one-line note takes ten seconds and protects you.</li></ul>"}
+    ]},
+    {type:"quiz", label:"Apply", questions:[
+      {q:"An AI tool gives you a statistic with a specific source and page number. What's your best next move?",
+       options:[{t:"Use it as-is, a specific source means it's accurate.",c:false},{t:"Look up the actual source to confirm it's real.",c:true},{t:"Ask the AI again and see if it repeats itself.",c:false}],
+       fbCorrect:"Correct. Specific-sounding details don't guarantee accuracy, always verify sources you plan to cite.",
+       fbIncorrect:"Not quite. Specific-sounding details don't guarantee accuracy, always verify sources you plan to cite."},
+      {q:"You want AI help understanding a tough concept before an exam. Which prompt works best?",
+       options:[{t:"\"explain this\"",c:false},{t:"\"Explain [concept] the way you'd explain it to someone who's struggled with it, then quiz me with 2 questions.\"",c:true},{t:"\"is this on the test\"",c:false}],
+       fbCorrect:"Correct. Context, a clear task, and a format request turn AI into an actual study partner.",
+       fbIncorrect:"Not quite. Context, a clear task, and a format request turn AI into an actual study partner."},
+      {q:"Your syllabus doesn't mention an AI policy at all. What should you do before using AI on graded work?",
+       options:[{t:"Assume it's fine since nothing says otherwise.",c:false},{t:"Avoid the assignment entirely.",c:false},{t:"Ask the instructor directly what's allowed.",c:true}],
+       fbCorrect:"Correct. Instructors would rather answer upfront than sort out a misunderstanding later.",
+       fbIncorrect:"Not quite. Instructors would rather answer upfront than sort out a misunderstanding later."}
+    ]},
+    {type:"reflect", label:"Reflect", hasScore:true,
+      confidenceQ:"How confident do you feel using AI tools responsibly in your coursework?",
+      reflectionPrompt:"One thing you'll actually do differently:"}
+  ]
+},
+{
+  id:1, title:"Academic Integrity: Where the Line Actually Is", time:"20-25 min",
+  desc:"The gray zones students actually run into, and how to stay on the right side of them.",
+  stages:[
+    {type:"content", label:"Relevance", html:
+      "<h2>Policies vary, confusion doesn't have to</h2><p>Every instructor sets their own AI policy, from \"not allowed at all\" to \"use it and cite it\" to \"use it freely.\" Most academic integrity trouble doesn't come from students trying to cheat, it comes from students genuinely unsure where a fuzzy line sits.</p>"+
+      "<div class='card'>This module walks through the spectrum of AI use, why policies differ by assignment type even within the same course, and what real disclosure looks like.</div>"},
+    {type:"poll", label:"Activate", polls:[
+      {id:"a", q:"Have you ever been unsure whether using AI on an assignment would count as cheating?", options:["Yes, often","Once or twice","No, never"]},
+      {id:"b", q:"Which have you tried with AI on schoolwork? (pick the one you use most)", options:["Brainstorming ideas only","Building an outline","Full first draft","Polishing my own draft","Haven't used it for assignments"]}
+    ]},
+    {type:"tabs", label:"Demonstrate", tabs:[
+      {label:"The Spectrum", html:"<span class='badge'>Concept 1</span><h3>Brainstorm → Outline → Draft → Polish → Submit</h3><p>\"Did you use AI?\" is the wrong question, because AI use exists on a spectrum. Brainstorming ideas with AI is very different from having it write your outline, which is different again from having it write your first draft, or having it polish your final wording. Most policies draw the line somewhere in that spectrum, not at the very start of it.</p><p>Know where your instructor's line falls before you start, not after you submit.</p>"},
+      {label:"Why Policies Differ", html:"<span class='badge'>Concept 2</span><h3>Same course, different rules by assignment</h3><p>A single instructor might allow AI brainstorming on a discussion post but forbid any AI involvement on a proctored exam or a skills-demonstration assignment, because the assignments are testing different things. A reflection essay is testing your own voice and thinking, a coding assignment might be testing your ability to write code yourself.</p><p>Check the policy for <strong>each</strong> assignment, not just the syllabus header.</p>"},
+      {label:"Real Disclosure", html:"<span class='badge'>Concept 3</span><h3>What a disclosure statement actually looks like</h3><p>Disclosure doesn't need to be complicated. A single sentence at the end of an assignment is usually enough:</p><div class='card gold'>\"I used [tool] to brainstorm potential arguments for this essay; the writing and analysis are my own.\"</div><p>Specific, short, honest. It protects you and it costs ten seconds.</p>"}
+    ]},
+    {type:"quiz", label:"Apply", questions:[
+      {q:"Your syllabus says AI is allowed for brainstorming but final writing must be your own words. You use AI to generate ideas, then write the post yourself. Acceptable?",
+       options:[{t:"No, any AI involvement violates academic integrity.",c:false},{t:"Yes, this matches exactly what the policy allows.",c:true},{t:"Only if you don't tell anyone.",c:false}],
+       fbCorrect:"Correct. Brainstorming with AI and then writing the final product yourself fits both the letter and spirit of that policy.",
+       fbIncorrect:"Not quite. This policy explicitly allows brainstorming with AI as long as the final writing is your own, that's exactly what happened here."},
+      {q:"You used AI to interpret confusing statistical output for a lab report, and it changed how you described your results. Your syllabus doesn't mention AI at all. Safest move?",
+       options:[{t:"Say nothing, since it isn't banned it must be fine.",c:false},{t:"Ask your instructor before submitting, and disclose the use either way.",c:true},{t:"Only disclose it if the results turn out wrong.",c:false}],
+       fbCorrect:"Correct. Silence isn't the same as permission, and asking upfront is always safer than guessing.",
+       fbIncorrect:"Not quite. Silence isn't the same as permission, asking upfront is always safer than guessing."},
+      {q:"You used AI only to fix grammar and punctuation in a personal reflection essay, no content changes. Is this typically treated the same as using AI to generate content?",
+       options:[{t:"Yes, any AI use is treated identically no matter the purpose.",c:false},{t:"No, proofreading assistance is often treated differently from content generation, but policies vary, so check.",c:true},{t:"It doesn't matter, disclosure is never required.",c:false}],
+       fbCorrect:"Correct. Purpose matters to most policies, but \"often\" isn't \"always\", confirming with your instructor removes the guesswork.",
+       fbIncorrect:"Not quite. Purpose matters to most policies, but \"often\" isn't \"always\", confirming with your instructor removes the guesswork."}
+    ]},
+    {type:"reflect", label:"Reflect", hasScore:true,
+      confidenceQ:"How confident are you now in reading and applying an AI policy correctly?",
+      reflectionPrompt:"Write the one-line disclosure statement you'd add to your next assignment if you used AI:"}
+  ]
+},
+{
+  id:2, title:"AI as a Research and Evidence Partner", time:"20-25 min",
+  desc:"Using AI for literature review and research support without losing evidentiary rigor.",
+  stages:[
+    {type:"content", label:"Relevance", html:
+      "<h2>As evidenced by?</h2><p>For research, capstone, or evidence-based work, the standard isn't just \"is this true,\" it's \"can I show where this came from.\" AI can be a genuinely useful research partner, but only if you keep it in the assistant role and keep the evidentiary rigor in your own hands.</p>"+
+      "<div class='card'>This module covers summarizing without losing nuance, spotting fabricated citations, and where AI's role in research should stop.</div>"},
+    {type:"poll", label:"Activate", polls:[
+      {id:"a", q:"How often do you use AI to summarize journal articles or research?", options:["Never","Occasionally","Regularly"]},
+      {id:"b", q:"How confident are you that you could spot a fabricated citation?", options:["Very confident","Somewhat","Not really, honestly"]}
+    ]},
+    {type:"tabs", label:"Demonstrate", tabs:[
+      {label:"Summarizing Well", html:"<span class='badge'>Skill 1</span><h3>Summarize without flattening nuance</h3><p>AI is genuinely good at condensing a dense paper, but summaries can quietly drop caveats, contested findings, or methodological limitations that were central to the paper's actual argument. Always ask: \"what did this summary leave out that might matter?\" and spot-check the original abstract and conclusion yourself.</p>"},
+      {label:"Spotting Fake Citations", html:"<span class='badge'>Skill 2</span><h3>Fabricated citations look completely normal</h3><p>AI-generated citations can include real-sounding author names, plausible journal titles, and specific page numbers, and still be entirely invented. The fix is simple but non-negotiable: search for the actual source before you cite it. If you can't find it, don't use it.</p>"},
+      {label:"AI for Methods, Not Interpretation", html:"<span class='badge'>Skill 3</span><h3>Assistant, not co-author</h3><p>Asking AI to help troubleshoot a statistics error or explain what a test does keeps it in the assistant role. Asking it to decide which test best supports your hypothesis, or to write your interpretation of the results, crosses into the analysis and argument that should be yours.</p>"}
+    ]},
+    {type:"quiz", label:"Apply", questions:[
+      {q:"AI gives you a very specific-sounding citation for a claim you want in your literature review. What should you do before including it?",
+       options:[{t:"Include it, it's detailed enough to be credible.",c:false},{t:"Search for the actual source to confirm it exists and says what's claimed.",c:true},{t:"Ask the AI to generate a different citation instead.",c:false}],
+       fbCorrect:"Correct. Detail is not the same as accuracy, verify before you cite.",
+       fbIncorrect:"Not quite. Detail is not the same as accuracy, verify before you cite."},
+      {q:"You're troubleshooting why a statistical test won't run correctly. Which use of AI stays in the assistant role?",
+       options:[{t:"Asking it to explain the error message and what to check in your code.",c:true},{t:"Asking it to decide which test best supports your hypothesis.",c:false},{t:"Asking it to write your discussion section interpreting results.",c:false}],
+       fbCorrect:"Correct. Debugging help is assistance, choosing your analysis and interpreting results is your job.",
+       fbIncorrect:"Not quite. Debugging help is assistance, choosing your analysis and interpreting results is your job."},
+      {q:"You ask AI to summarize a dense 40-page paper for your lit review. What's the biggest risk in using that summary directly?",
+       options:[{t:"It will always be too short to be useful.",c:false},{t:"It may flatten nuance, caveats, or contested findings that mattered to the paper's argument.",c:true},{t:"There's no risk if it reads well.",c:false}],
+       fbCorrect:"Correct. A well-written summary can still quietly lose the parts that made the paper's argument credible.",
+       fbIncorrect:"Not quite. A well-written summary can still quietly lose the parts that made the paper's argument credible."}
+    ]},
+    {type:"reflect", label:"Reflect", hasScore:true,
+      confidenceQ:"How confident are you in verifying AI-assisted research before you rely on it?",
+      reflectionPrompt:"Name one upcoming paper or assignment where you'll apply the verify-the-citation habit:"}
+  ]
+},
+{
+  id:3, title:"Prompting and Iteration as a Study Skill", time:"20-25 min",
+  desc:"Turning prompting from a one-shot guess into a study skill that compounds.",
+  stages:[
+    {type:"content", label:"Relevance", html:
+      "<h2>The first prompt is rarely the best one</h2><p>Most people type one prompt, get a mediocre answer, and either give up or accept it. Treating prompting as an iterative skill, one you get better at with practice, turns AI from a vending machine into an actual study tool.</p>"+
+      "<div class='card'>This module covers refining a weak prompt, asking AI to critique you instead of write for you, and using AI for retrieval practice.</div>"},
+    {type:"poll", label:"Activate", polls:[
+      {id:"a", q:"When AI gives you a bad or generic answer, what do you usually do?", options:["Give up and move on","Rephrase once and accept whatever comes back","Assume it's right anyway","Keep refining until it's actually useful"]}
+    ]},
+    {type:"tabs", label:"Demonstrate", tabs:[
+      {label:"Iterative Refinement", html:"<span class='badge'>Skill 1</span><h3>Add context, task, and format</h3><p>A vague prompt gets a vague answer. Add what the concept is, your current understanding, and what you want the response to do (explain simply, quiz you, compare to something you know). Each round of refinement gets you closer to something actually useful.</p>"},
+      {label:"Ask It to Critique You", html:"<span class='badge'>Skill 2</span><h3>Flip who's doing the writing</h3><p>Instead of \"write this for me,\" try \"here's my attempt, tell me what's weak or oversimplified.\" You still have to produce something first, which is where the actual learning happens, and AI's role shifts from author to editor.</p>"},
+      {label:"Retrieval Practice Prompts", html:"<span class='badge'>Skill 3</span><h3>Make yourself retrieve, not just recognize</h3><p>\"Quiz me on this, one question at a time\" or \"give me a new problem like this one but with different numbers\" forces you to produce the answer rather than just nod along to AI's explanation. Producing an answer builds stronger memory than reading one.</p>"}
+    ]},
+    {type:"quiz", label:"Apply", questions:[
+      {q:"Your first prompt was \"explain this\" and the answer was generic and unhelpful. Best next step?",
+       options:[{t:"Give up and assume AI isn't useful here.",c:false},{t:"Add context: what the concept is, your current understanding, and what you want it to do.",c:true},{t:"Copy the vague answer anyway.",c:false}],
+       fbCorrect:"Correct. One vague prompt tells you almost nothing about what AI can actually do for this concept.",
+       fbIncorrect:"Not quite. One vague prompt tells you almost nothing about what AI can actually do for this concept."},
+      {q:"Which revision turns a weak prompt into a stronger study prompt?",
+       options:[{t:"\"Help me with chapter 5\" → \"Help me with the chapter 5 material.\"",c:false},{t:"\"Help me with chapter 5\" → \"Quiz me on the three main causes discussed in chapter 5, one question at a time.\"",c:true},{t:"\"Help me with chapter 5\" → \"Do chapter 5 for me.\"",c:false}],
+       fbCorrect:"Correct. Specific content plus a retrieval-practice format is what makes a prompt actually useful for studying.",
+       fbIncorrect:"Not quite. Specific content plus a retrieval-practice format is what makes a prompt actually useful for studying."},
+      {q:"You want to make sure you can apply a concept to new situations, not just recognize the one example from lecture. Best approach?",
+       options:[{t:"Ask AI to give you the exact same example again for review.",c:false},{t:"Ask AI for a new problem with different numbers or context testing the same concept.",c:true},{t:"Ask AI to just confirm your lecture notes are correct.",c:false}],
+       fbCorrect:"Correct. A varied problem tests transfer, the same example only tests memorization.",
+       fbIncorrect:"Not quite. A varied problem tests transfer, the same example only tests memorization."}
+    ]},
+    {type:"reflect", label:"Reflect", hasScore:true,
+      confidenceQ:"How confident are you in refining a weak prompt into a genuinely useful one?",
+      reflectionPrompt:"Rewrite one prompt you've actually used recently to make it better:"}
+  ]
+},
+{
+  id:4, title:"AI as a Study Partner, Not a Shortcut", time:"20-30 min",
+  desc:"A ten-prompt job aid for using AI as a tutor that makes you do the thinking.",
+  stages:[
+    {type:"content", label:"Relevance", html:
+      "<h2>How you learn matters more than what you look up</h2><p>Decades of learning-science research point to the same finding: producing an answer yourself (retrieval practice), connecting new material to what you already know (elaboration), and catching your own mistakes (self-explanation) build far stronger memory than passively reading an explanation, even a very good one.</p>"+
+      "<div class='card gold'>AI can either short-circuit that process by just handing you the answer, or supercharge it by acting as a tutor that keeps asking <em>you</em> questions. This module is a reusable job aid, ten prompts built to keep AI in the tutor role.</div>"},
+    {type:"poll", label:"Activate", polls:[
+      {id:"a", q:"When you're stuck on material, what's your first move, honestly?", options:["Ask AI for the answer directly","Ask AI to explain, then move on","Reread my notes","Ask a friend or classmate"]}
+    ]},
+    {type:"tabs", label:"Demonstrate", tabs:[
+      {label:"Retrieval Practice", html:
+        "<span class='badge'>Category 1</span><h3>Make yourself produce the answer first</h3>"+
+        "<div class='prompt-card'><div class='ptxt'>\"Quiz me on [topic] with 5 questions, one at a time. Don't tell me if I'm right until I answer.\"</div><button class='copy-btn' data-copy=\"Quiz me on [topic] with 5 questions, one at a time. Don't tell me if I'm right until I answer.\">Copy</button></div>"+
+        "<div class='prompt-card'><div class='ptxt'>\"I just read about [concept]. Without looking at my notes, here's what I remember: [paste]. Tell me what I got right, what I missed, and one thing I misunderstood.\"</div><button class='copy-btn' data-copy=\"I just read about [concept]. Without looking at my notes, here's what I remember: [paste]. Tell me what I got right, what I missed, and one thing I misunderstood.\">Copy</button></div>"},
+      {label:"Elaboration", html:
+        "<span class='badge'>Category 2</span><h3>Connect new material to what you know</h3>"+
+        "<div class='prompt-card'><div class='ptxt'>\"Explain [concept] using an analogy from [something I already know well, e.g., soccer, cooking, music].\"</div><button class='copy-btn' data-copy=\"Explain [concept] using an analogy from [something I already know well, e.g., soccer, cooking, music].\">Copy</button></div>"+
+        "<div class='prompt-card'><div class='ptxt'>\"Here's my own explanation of [concept] in my own words: [paste]. Push back on anything that's oversimplified or wrong.\"</div><button class='copy-btn' data-copy=\"Here's my own explanation of [concept] in my own words: [paste]. Push back on anything that's oversimplified or wrong.\">Copy</button></div>"},
+      {label:"Self-Explanation", html:
+        "<span class='badge'>Category 3</span><h3>Catch the mistake, don't just read it</h3>"+
+        "<div class='prompt-card'><div class='ptxt'>\"Solve [problem] but intentionally make one common mistake a student might make. I'll try to find it.\"</div><button class='copy-btn' data-copy=\"Solve [problem] but intentionally make one common mistake a student might make. I'll try to find it.\">Copy</button></div>"+
+        "<div class='prompt-card'><div class='ptxt'>\"Here's my work on [problem]: [paste]. Don't fix it, just tell me if my reasoning breaks down and where.\"</div><button class='copy-btn' data-copy=\"Here's my work on [problem]: [paste]. Don't fix it, just tell me if my reasoning breaks down and where.\">Copy</button></div>"},
+      {label:"Interleaving", html:
+        "<span class='badge'>Category 4</span><h3>Stretch past the exact example you studied</h3>"+
+        "<div class='prompt-card'><div class='ptxt'>\"Give me a new problem similar to [problem type] but with different numbers/context, so I can practice without just memorizing this one.\"</div><button class='copy-btn' data-copy=\"Give me a new problem similar to [problem type] but with different numbers/context, so I can practice without just memorizing this one.\">Copy</button></div>"+
+        "<div class='prompt-card'><div class='ptxt'>\"How does [concept from this week] connect to [concept from three weeks ago]? Quiz me on the connection.\"</div><button class='copy-btn' data-copy=\"How does [concept from this week] connect to [concept from three weeks ago]? Quiz me on the connection.\">Copy</button></div>"},
+      {label:"Metacognition", html:
+        "<span class='badge'>Category 5</span><h3>Check your confidence, not just your answer</h3>"+
+        "<div class='prompt-card'><div class='ptxt'>\"Before I answer, I'm rating my confidence on [topic] as [1-5]. Ask me the hardest question you can on it, then tell me if my confidence matched my performance.\"</div><button class='copy-btn' data-copy=\"Before I answer, I'm rating my confidence on [topic] as [1-5]. Ask me the hardest question you can on it, then tell me if my confidence matched my performance.\">Copy</button></div>"+
+        "<div class='prompt-card'><div class='ptxt'>\"I'm about to take a practice test on [topic]. What are the 3 things students most often get wrong, without telling me the actual answers?\"</div><button class='copy-btn' data-copy=\"I'm about to take a practice test on [topic]. What are the 3 things students most often get wrong, without telling me the actual answers?\">Copy</button></div>"}
+    ]},
+    {type:"practice", label:"Apply",
+      instructions:"Pick one category below, then adapt one of its prompts for something you're actually studying right now. Type your customized version, this isn't graded, it's a rehearsal for using it for real.",
+      categories:["Retrieval Practice","Elaboration","Self-Explanation","Interleaving","Metacognition"],
+      checklist:[
+        "My prompt names a specific concept, not just \"this chapter.\"",
+        "My prompt asks the AI to question, quiz, or challenge me, not just explain.",
+        "I could actually run this prompt right now in a real study session."
+      ]
+    },
+    {type:"reflect", label:"Reflect", hasScore:false,
+      confidenceQ:"How confident are you in using AI as a tutor rather than an answer machine?",
+      reflectionPrompt:"Which prompt will you actually try this week, and on what topic?"}
+  ]
+}
+];
+
+/* =========================================================
+   STATE
+   ========================================================= */
+var currentModuleIndex = null;
+var currentStage = 0;
+
+var moduleState = MODULES.map(function(m){
+  var s = {
+    started:false, completed:false,
+    pollAnswers:{}, activeTab:0,
+    quizAnswered:[], quizChoice:[],
+    confidence:null, reflection:"",
+    practice:{category:"", text:"", checks:[]}
+  };
+  if(m.stages.some(function(st){return st.type==="quiz";})){
+    var qStage = m.stages.filter(function(st){return st.type==="quiz";})[0];
+    s.quizAnswered = qStage.questions.map(function(){return false;});
+    s.quizChoice = qStage.questions.map(function(){return -1;});
+  }
+  var pStage = m.stages.filter(function(st){return st.type==="practice";})[0];
+  if(pStage){ s.practice.checks = pStage.checklist.map(function(){return false;}); }
+  return s;
+});
+
+var headerEl = document.getElementById("headerBar");
+var mainEl = document.getElementById("mainContent");
+var footerEl = document.getElementById("footerBar");
+
+/* =========================================================
+   PERSISTENCE
+   ========================================================= */
+function buildSaveObject(){
+  return {
+    loc: currentModuleIndex===null ? "menu" : {m:currentModuleIndex, s:currentStage},
+    modules: moduleState.map(function(st){
+      return {
+        started:st.started, completed:st.completed,
+        pollAnswers:st.pollAnswers,
+        quizAnswered:st.quizAnswered, quizChoice:st.quizChoice,
+        confidence:st.confidence, reflection:st.reflection,
+        practice:st.practice
+      };
+    })
+  };
+}
+function saveProgress(){
+  var data = buildSaveObject();
+  var json = JSON.stringify(data);
+  if(json.length > 4000) json = JSON.stringify({loc:data.loc, modules:data.modules.map(function(m){return {completed:m.completed, started:m.started};})});
+  scormSet("cmi.suspend_data", json);
+  var totals = computeGlobalScore();
+  scormSet("cmi.core.score.raw", String(totals.pct));
+  var allDone = moduleState.every(function(s){return s.completed;});
+  scormSet("cmi.core.lesson_status", allDone ? "completed" : "incomplete");
+}
+function restoreProgress(){
+  var raw = scormGet("cmi.suspend_data");
+  if(!raw) return;
+  try{
+    var data = JSON.parse(raw);
+    if(data.modules){
+      data.modules.forEach(function(saved, i){
+        if(!moduleState[i]) return;
+        Object.keys(saved).forEach(function(k){ moduleState[i][k] = saved[k]; });
+      });
+    }
+    if(data.loc && data.loc !== "menu"){
+      currentModuleIndex = data.loc.m; currentStage = data.loc.s;
+    }
+  }catch(e){}
+}
+function computeGlobalScore(){
+  var correct=0, total=0;
+  MODULES.forEach(function(m,i){
+    var qStage = m.stages.filter(function(st){return st.type==="quiz";})[0];
+    if(!qStage) return;
+    qStage.questions.forEach(function(q,qi){
+      total++;
+      if(moduleState[i].quizAnswered[qi] && q.options[moduleState[i].quizChoice[qi]] && q.options[moduleState[i].quizChoice[qi]].c) correct++;
+    });
+  });
+  return {correct:correct, total:total, pct: total ? Math.round((correct/total)*100) : 0};
+}
+
+/* =========================================================
+   RENDER
+   ========================================================= */
+function renderAll(){
+  renderHeader();
+  renderMain();
+  renderFooter();
+}
+
+function renderHeader(){
+  if(currentModuleIndex===null){
+    var completedCount = moduleState.filter(function(s){return s.completed;}).length;
+    headerEl.innerHTML =
+      "<div class='eyebrow'>David Green, Ed.D. &middot; CQI360</div>"+
+      "<h1>AI Literacy for Learning</h1>"+
+      "<div class='menu-subtitle'>Five short modules for using AI without outsourcing your thinking.</div>"+
+      "<div class='progress-track'><div class='progress-fill' style='width:"+((completedCount/5)*100)+"%'></div></div>"+
+      "<div class='stage-label'>"+completedCount+" of 5 modules complete</div>";
+  } else {
+    var m = MODULES[currentModuleIndex];
+    var stage = m.stages[currentStage];
+    headerEl.innerHTML =
+      "<button class='backlink' id='headerBackLink'>&larr; All Modules</button>"+
+      "<div class='eyebrow'>Module "+(currentModuleIndex+1)+" of 5 &middot; "+m.title+"</div>"+
+      "<h1>"+stage.label+"</h1>"+
+      "<div class='progress-track'><div class='progress-fill' style='width:"+(((currentStage+1)/m.stages.length)*100)+"%'></div></div>"+
+      "<div class='stage-label'>Step "+(currentStage+1)+" of "+m.stages.length+"</div>";
+    document.getElementById("headerBackLink").addEventListener("click", goToMenu);
+  }
+}
+
+function renderFooter(){
+  if(currentModuleIndex===null){ footerEl.style.display="none"; footerEl.innerHTML=""; return; }
+  footerEl.style.display="flex";
+  var m = MODULES[currentModuleIndex];
+  var isLast = currentStage === m.stages.length-1;
+  footerEl.innerHTML =
+    "<button class='nav secondary' id='backBtn'>"+(currentStage===0? "All Modules":"Back")+"</button>"+
+    "<span class='hint'>"+(isLast? "Finish below to mark this module complete.":"")+"</span>"+
+    "<button class='nav' id='nextBtn' style='"+(isLast?"display:none":"")+"'>Next</button>";
+  document.getElementById("backBtn").addEventListener("click", function(){
+    if(currentStage===0){ goToMenu(); } else { currentStage--; saveProgress(); renderAll(); window.scrollTo(0,0); }
+  });
+  var nb = document.getElementById("nextBtn");
+  if(nb){ nb.addEventListener("click", function(){ currentStage++; saveProgress(); renderAll(); window.scrollTo(0,0); }); }
+}
+
+function renderMain(){
+  if(currentModuleIndex===null){ mainEl.innerHTML = buildMenuHTML(); bindMenuEvents(); }
+  else { mainEl.innerHTML = buildStageHTML(); bindStageEvents(); }
+}
+
+/* ---------- Menu ---------- */
+function buildMenuHTML(){
+  var totals = computeGlobalScore();
+  var completedCount = moduleState.filter(function(s){return s.completed;}).length;
+  var html = "<p class='menu-intro'>Five quick modules on using AI well in coursework, work through them in any order. Each one is short and follows the same rhythm: why it matters, a quick check-in, the core skills, a chance to practice, and a two-minute reflection.</p>";
+  html += "<div class='overall-box'><div><div class='num'>"+completedCount+" / 5</div><div class='lbl'>modules complete</div></div><div style='text-align:right;'><div class='num'>"+totals.correct+"/"+totals.total+"</div><div class='lbl'>practice questions correct so far</div></div></div>";
+  html += "<div class='menu-grid'>";
+  MODULES.forEach(function(m,i){
+    var st = moduleState[i];
+    var statusClass = st.completed ? "completed" : (st.started ? "inprogress" : "");
+    var statusLabel = st.completed ? "Completed" : (st.started ? "In Progress" : "Not Started");
+    var btnLabel = st.completed ? "Review" : (st.started ? "Continue" : "Start");
+    var btnClass = st.completed ? "startbtn review" : "startbtn";
+    html += "<div class='module-card "+(st.completed?"completed":"")+"'>"+
+      "<div class='module-card-top'><div class='module-num'>"+(i+1)+"</div><div class='module-card-title'>"+m.title+"</div></div>"+
+      "<p class='module-desc'>"+m.desc+"</p>"+
+      "<div class='module-meta'><span class='status-pill "+statusClass+"'>"+statusLabel+"</span><span class='module-time'>"+m.time+"</span><button class='"+btnClass+"' data-open='"+i+"'>"+btnLabel+"</button></div>"+
+      "</div>";
+  });
+  html += "</div>";
+  html += "<div class='about-box'>"+
+    "<div class='about-title'>About this series</div>"+
+    "<p>Created by David Green, Ed.D., founder of CQI360, an AI strategy and organizational evaluation consultancy, and designer of Claude-powered learning tools used through university partnerships.</p>"+
+    "<p>Designed using the <a href='https://cqi360.com' target='_blank' rel='noopener'>LASER Learning Design Framework</a>. Each module follows a learning-science-informed sequence that establishes relevance, activates prior knowledge, demonstrates new skills, engages learners in authentic application, and concludes with reflection.</p>"+
+    "</div>";
+  return html;
+}
+function bindMenuEvents(){
+  document.querySelectorAll("[data-open]").forEach(function(btn){
+    btn.addEventListener("click", function(){ openModule(parseInt(btn.getAttribute("data-open"),10)); });
+  });
+}
+function openModule(i){
+  currentModuleIndex = i; currentStage = 0;
+  moduleState[i].started = true;
+  saveProgress(); renderAll(); window.scrollTo(0,0);
+}
+function goToMenu(){ currentModuleIndex = null; saveProgress(); renderAll(); window.scrollTo(0,0); }
+
+/* ---------- Stage router ---------- */
+function buildStageHTML(){
+  var m = MODULES[currentModuleIndex];
+  var stage = m.stages[currentStage];
+  var state = moduleState[currentModuleIndex];
+  switch(stage.type){
+    case "content": return "<div class='screen'>"+stage.html+"</div>";
+    case "poll": return buildPollHTML(stage, state);
+    case "tabs": return buildTabsHTML(stage, state);
+    case "quiz": return buildQuizHTML(stage, state);
+    case "practice": return buildPracticeHTML(stage, state);
+    case "reflect": return buildReflectHTML(stage, state);
+    default: return "";
+  }
+}
+function bindStageEvents(){
+  var m = MODULES[currentModuleIndex];
+  var stage = m.stages[currentStage];
+  var state = moduleState[currentModuleIndex];
+  switch(stage.type){
+    case "poll": bindPollEvents(stage, state); break;
+    case "tabs": bindTabsEvents(stage, state); break;
+    case "quiz": bindQuizEvents(stage, state); break;
+    case "practice": bindPracticeEvents(stage, state); break;
+    case "reflect": bindReflectEvents(stage, state); break;
+  }
+}
+
+/* ---------- Poll ---------- */
+function buildPollHTML(stage, state){
+  var html = "<div class='screen'><h2>Quick check-in</h2><p>No wrong answers, this just tunes what follows.</p>";
+  stage.polls.forEach(function(p){
+    html += "<div class='card'><strong>"+p.q+"</strong><div data-poll='"+p.id+"'>";
+    p.options.forEach(function(opt, oi){
+      var sel = state.pollAnswers[p.id]===oi ? " selected":"";
+      html += "<button class='poll-opt"+sel+"' data-poll='"+p.id+"' data-oi='"+oi+"'>"+opt+"</button>";
+    });
+    html += "</div></div>";
+  });
+  html += "</div>";
+  return html;
+}
+function bindPollEvents(stage, state){
+  document.querySelectorAll(".poll-opt").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var pid = btn.getAttribute("data-poll"); var oi = parseInt(btn.getAttribute("data-oi"),10);
+      state.pollAnswers[pid] = oi; saveProgress(); renderMain();
+    });
+  });
+}
+
+/* ---------- Tabs ---------- */
+function buildTabsHTML(stage, state){
+  var active = state.activeTab || 0;
+  var html = "<div class='screen'><h2>Core skills</h2><div class='tabbar'>";
+  stage.tabs.forEach(function(t, ti){
+    html += "<button class='tabbtn"+(ti===active?" active":"")+"' data-tab='"+ti+"'>"+t.label+"</button>";
+  });
+  html += "</div><div class='tabpanel'>"+stage.tabs[active].html+"</div></div>";
+  return html;
+}
+function bindTabsEvents(stage, state){
+  document.querySelectorAll(".tabbtn").forEach(function(btn){
+    btn.addEventListener("click", function(){ state.activeTab = parseInt(btn.getAttribute("data-tab"),10); renderMain(); });
+  });
+  document.querySelectorAll(".copy-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var txt = btn.getAttribute("data-copy");
+      if(navigator.clipboard){ navigator.clipboard.writeText(txt).then(function(){ btn.textContent="Copied"; btn.classList.add("copied"); }).catch(function(){}); }
+    });
+  });
+}
+
+/* ---------- Quiz ---------- */
+function buildQuizHTML(stage, state){
+  var html = "<div class='screen'><h2>Try it</h2><p>Pick the best response for each scenario.</p>";
+  stage.questions.forEach(function(q, qi){
+    var answered = state.quizAnswered[qi];
+    html += "<div class='quiz-q'><div class='qtext'>Q"+(qi+1)+". "+q.q+"</div>";
+    q.options.forEach(function(opt, oi){
+      var cls = "opt";
+      if(answered){
+        if(opt.c) cls += " correct";
+        else if(state.quizChoice[qi]===oi) cls += " incorrect";
+      }
+      html += "<button class='"+cls+"' data-qi='"+qi+"' data-oi='"+oi+"' "+(answered?"disabled":"")+">"+opt.t+"</button>";
+    });
+    if(answered){
+      var correct = q.options[state.quizChoice[qi]].c;
+      html += "<div class='feedback "+(correct?"ok":"bad")+"'>"+(correct? q.fbCorrect : q.fbIncorrect)+"</div>";
+    }
+    html += "</div>";
+  });
+  html += "</div>";
+  return html;
+}
+function bindQuizEvents(stage, state){
+  document.querySelectorAll(".quiz-q .opt").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var qi = parseInt(btn.getAttribute("data-qi"),10);
+      if(state.quizAnswered[qi]) return;
+      state.quizAnswered[qi] = true;
+      state.quizChoice[qi] = parseInt(btn.getAttribute("data-oi"),10);
+      saveProgress(); renderMain();
+    });
+  });
+}
+
+/* ---------- Practice (job-aid apply stage) ---------- */
+function buildPracticeHTML(stage, state){
+  var html = "<div class='screen'><h2>Try it yourself</h2><p>"+stage.instructions+"</p>";
+  html += "<select class='select' id='practiceCategory'><option value=''>Choose a category...</option>";
+  stage.categories.forEach(function(c){
+    html += "<option value='"+c+"' "+(state.practice.category===c?"selected":"")+">"+c+"</option>";
+  });
+  html += "</select>";
+  html += "<textarea id='practiceText' placeholder='Type your adapted prompt here...'>"+state.practice.text+"</textarea>";
+  html += "<div class='checklist'>";
+  stage.checklist.forEach(function(item, ci){
+    html += "<label class='check-item'><input type='checkbox' data-ci='"+ci+"' "+(state.practice.checks[ci]?"checked":"")+"> "+item+"</label>";
+  });
+  html += "</div></div>";
+  return html;
+}
+function bindPracticeEvents(stage, state){
+  var cat = document.getElementById("practiceCategory");
+  cat.addEventListener("change", function(){ state.practice.category = cat.value; saveProgress(); });
+  var txt = document.getElementById("practiceText");
+  txt.addEventListener("blur", function(){ state.practice.text = txt.value; saveProgress(); });
+  document.querySelectorAll("[data-ci]").forEach(function(box){
+    box.addEventListener("change", function(){
+      state.practice.checks[parseInt(box.getAttribute("data-ci"),10)] = box.checked; saveProgress();
+    });
+  });
+}
+
+/* ---------- Reflect ---------- */
+function buildReflectHTML(stage, state){
+  var html = "<div class='screen'><h2>Wrap-up</h2>";
+  if(stage.hasScore){
+    var qStage = MODULES[currentModuleIndex].stages.filter(function(s){return s.type==="quiz";})[0];
+    var correct = state.quizChoice.filter(function(oi,qi){ return oi>=0 && qStage.questions[qi].options[oi].c; }).length;
+    html += "<div class='summary-box'><div>Your practice score</div><div class='score'>"+correct+" / "+qStage.questions.length+"</div></div>";
+  }
+  html += "<div class='card' style='margin-top:18px;'><strong>"+stage.confidenceQ+"</strong><div class='rating' id='ratingRow'>";
+  for(var v=1; v<=5; v++){ html += "<button class='rate-btn"+(state.confidence===v?" selected":"")+"' data-val='"+v+"'>"+v+"</button>"; }
+  html += "</div><div style='display:flex;justify-content:space-between;font-size:12px;color:#7a8a96;'><span>Not confident</span><span>Very confident</span></div></div>";
+  html += "<div class='card gold'><strong>"+stage.reflectionPrompt+"</strong><textarea id='reflectionText' placeholder='Type your answer...'>"+state.reflection+"</textarea></div>";
+  if(state.completed){
+    html += "<div class='complete-banner'>&#10003; Nice work, this module is marked complete.</div>";
+  } else {
+    html += "<button class='nav' id='finishBtn' style='width:100%;margin-top:10px;'>Mark Complete</button>";
+  }
+  html += "</div>";
+  return html;
+}
+function bindReflectEvents(stage, state){
+  document.querySelectorAll(".rate-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){ state.confidence = parseInt(btn.getAttribute("data-val"),10); saveProgress(); renderMain(); });
+  });
+  var txt = document.getElementById("reflectionText");
+  if(txt){ txt.addEventListener("blur", function(){ state.reflection = txt.value; saveProgress(); }); }
+  var fb = document.getElementById("finishBtn");
+  if(fb){
+    fb.addEventListener("click", function(){
+      var t = document.getElementById("reflectionText");
+      if(t) state.reflection = t.value;
+      state.completed = true;
+      saveProgress();
+      renderAll();
+    });
+  }
+}
+
+/* =========================================================
+   BOOT
+   ========================================================= */
+scormInit();
+restoreProgress();
+renderAll();
+</script>
+</body>
+</html>
